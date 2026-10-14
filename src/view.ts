@@ -364,7 +364,10 @@ export class SNoteView extends ItemView {
 
   private renderEmptyState(): void {
     if (!this.paperEl) return;
-    this.paperEl.empty();
+    // The canvases live inside .snl-paper. Emptying it detaches them permanently, and a
+    // detached canvas can never be drawn on or receive events — drawing stayed dead even
+    // after a note was opened. Keep the canvas stack; add the hint as an overlay.
+    this.paperEl.querySelector('.snl-empty')?.remove();
     const box = document.createElement('div');
     box.className = 'snl-empty';
     const title = document.createElement('div');

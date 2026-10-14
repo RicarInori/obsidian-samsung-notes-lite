@@ -1,7 +1,7 @@
 {
   "id": "samsung-notes-lite",
   "name": "Samsung Notes Lite",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "minAppVersion": "1.5.0",
   "description": "手写笔记（S Pen 风格墨迹）、页面与背景、PDF 导入导出；笔记存于仓库内，界面配色随 Obsidian 主题统一。",
   "author": "RicarInori",
