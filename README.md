@@ -38,18 +38,42 @@ cp main.js manifest.json styles.css "<vault>/.obsidian/plugins/samsung-notes-lit
 **没有任何 Node/Electron 依赖**（可用 `grep -oE 'require\("(electron|fs|node:[a-z]+)"\)' main.js` 复核，
 结果为 0 条），因此手机版 Obsidian 也能加载。
 
-手机上安装的三条路：
+### 用命令行安装（adb，已验证）
 
-1. **BRAT**（推荐）：在手机 Obsidian 装 BRAT 插件，Add beta plugin → 填 `RicarInori/obsidian-samsung-notes-lite`。
-2. **手动**：把 `main.js` / `manifest.json` / `styles.css` 放进手机那个仓库的
-   `<vault>/.obsidian/plugins/samsung-notes-lite/`（Android 用文件管理器；iOS 用「文件」App 或 iCloud）。
-3. **同步**：桌面端装好后用 Obsidian Sync / 网盘同步整个仓库，`.obsidian/plugins/` 会一起过去
-   （注意：官方 Sync 默认不同步插件目录，需在同步设置里勾选）。
+整条链路除了"创建仓库"和一次信任确认，**不需要文件管理器、不需要在手机上打字**：
 
-然后同样要 **设置 → 第三方插件 → 关闭受限模式 → 启用**。
+```bash
+ADB=~/Android/Sdk/platform-tools/adb.exe
+VAULT='/storage/emulated/0/Android/data/md.obsidian/files/<你的仓库名>'   # 见下方说明
 
-手机上的两个额外提示：S Pen / 手写笔在 Android 上会提供真实 `PointerEvent.pressure`，压感变宽是有效的；
-而 Android WebView 对 `window.prompt` 支持不可靠，所以文本工具改用了 Obsidian 原生模态框。
+adb install -r -g Obsidian-<version>.apk          # 装 Obsidian
+# 首次需要在界面上建一次仓库（Obsidian 把仓库注册表放在应用私有目录，非 debuggable，无法脚本化）
+#   建仓库时选 "App storage"：路径即 /storage/emulated/0/Android/data/md.obsidian/files/<名字>
+
+adb shell am force-stop md.obsidian                # 先停掉，避免它回写配置
+adb shell "mkdir -p '$VAULT/.obsidian/plugins/samsung-notes-lite'"
+adb push main.js manifest.json styles.css "$VAULT/.obsidian/plugins/samsung-notes-lite/"
+printf '[ "samsung-notes-lite" ]' > community-plugins.json
+adb push community-plugins.json "$VAULT/.obsidian/community-plugins.json"
+```
+
+重新打开 Obsidian 后会出现一次 **"Do you trust the author of this vault?"** 提示
+（因为仓库里已经预装了插件）——点 **"Trust author and enable plugins"** 即完成。
+之后 设置 → 第三方插件 会显示 "You currently have 1 plugin installed"，且受限模式为关。
+
+注意两点坑：
+- **仓库名带空格**时，`adb shell` 的引号会被二次拆分，必须把整条命令作为一个字符串传给 `adb shell "..."`，
+  并在里面用单引号包住路径（否则会报 `Read-only file system`）。
+- 本机 `adb push` 的**本地路径要用 Windows 形式**（`C:/...`）；若设置了 `MSYS_NO_PATHCONV=1`，
+  MSYS 不会再帮你转换 `/c/...`。
+
+### 其它安装方式
+
+1. **BRAT**：手机 Obsidian 装 BRAT → Add beta plugin → `RicarInori/obsidian-samsung-notes-lite`
+2. **手动**：把三个文件放进 `<vault>/.obsidian/plugins/samsung-notes-lite/`
+3. **同步**：桌面装好后同步整个仓库（官方 Sync 默认不同步插件目录，需在同步设置里勾选）
+
+S Pen / 手写笔在 Android 上会提供真实 `PointerEvent.pressure`，压感变宽在手写笔上是有效的。
 
 ## 存储格式
 
@@ -121,6 +145,13 @@ Obsidian 没有固定"首页"，所以四处都提供，任选：
 
 **未验证**
 
-- 画布绘制、指针取样、工具栏交互、PDF 导入的**实际渲染**：需要 GUI 里手点，我无法代做。
-- **移动端运行时**：代码层面已排除 Node/Electron 依赖并去掉了 `window.prompt`，但没有在真机上跑过。
+- 画布绘制、指针取样、工具栏交互、PDF 导入在**桌面端**的实际渲染：需要 GUI 里手点，我无法代做。
+- iOS：只做了代码层面的排除，没有真机/模拟器验证。
 - 笔感：需要压感硬件（数位笔/笔屏）；鼠标只能得到恒定 pressure。
+
+**移动端已在真机级环境验证过（Android 16 / API 36 / x86_64 模拟器）**
+
+用上面的 adb 流程装好后实测：插件加载成功 → ` ```snote-button ` 代码块渲染成真实按钮 →
+点按钮弹出创建对话框 → 点「创建」后**在设备上写出** `<vault>/三星笔记/未命名笔记.md` 与
+`…/未命名笔记.snote/note.json`（内容为合法模型：1080×1527、`canvasType: finite`）→ 并打开插件的编辑器视图。
+即"命令行安装 → 插件在 Android 上真正运行"整链已打通。
