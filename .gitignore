@@ -1,0 +1,17 @@
+# build output — shipped as a GitHub Release asset, not committed
+main.js
+
+# dependencies
+node_modules/
+
+# generated test bundles
+test/check.cjs
+test/smoke.cjs
+
+# local scratch / verification byproducts
+导出验证-矢量.pdf
+*.local.md
+
+# OS noise
+.DS_Store
+Thumbs.db

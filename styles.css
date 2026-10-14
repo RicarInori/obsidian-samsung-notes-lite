@@ -1,0 +1,385 @@
+/* ---------------------------------------------------------------------------
+   Samsung Notes Lite
+
+   Layout deliberately mirrors the Samsung Notes arrangement (app bar / tool row /
+   pen-options row / page rail / canvas / status bar). Every colour, radius and
+   font comes from Obsidian theme variables, so the component matches whatever
+   theme the user runs instead of hard-coding a look.
+--------------------------------------------------------------------------- */
+
+.snl-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+}
+
+/* --- app bar ------------------------------------------------------------- */
+
+.snl-appbar {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-2) var(--size-4-3);
+  background: var(--background-primary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.snl-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-semibold);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  padding: var(--size-2-2) var(--size-4-2);
+  color: var(--text-normal);
+}
+
+.snl-title:hover {
+  border-color: var(--background-modifier-border);
+}
+
+.snl-title:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+.snl-pagelabel {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- buttons ------------------------------------------------------------- */
+
+.snl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-s);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.snl-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.snl-btn.is-active {
+  background: var(--background-modifier-active-hover, var(--background-modifier-hover));
+  color: var(--interactive-accent);
+  box-shadow: inset 0 0 0 1px var(--interactive-accent);
+}
+
+/* --- tool row ------------------------------------------------------------ */
+
+.snl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  padding: var(--size-2-2) var(--size-4-3);
+  background: var(--background-primary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.snl-spacer {
+  flex: 1;
+}
+
+/* --- pen options row ----------------------------------------------------- */
+
+.snl-options {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  padding: var(--size-4-2) var(--size-4-3);
+  background: var(--background-secondary-alt);
+  border-bottom: 1px solid var(--background-modifier-border);
+  overflow-x: auto;
+}
+
+.snl-swatch {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  padding: 0;
+}
+
+.snl-swatch.is-active {
+  box-shadow: 0 0 0 2px var(--interactive-accent);
+}
+
+.snl-size {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.snl-size input[type='range'] {
+  width: 96px;
+}
+
+.snl-preview {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+}
+
+/* --- body: page rail + canvas -------------------------------------------- */
+
+.snl-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.snl-pages {
+  width: 132px;
+  flex: 0 0 auto;
+  overflow-y: auto;
+  padding: var(--size-4-2);
+  background: var(--background-secondary-alt);
+  border-right: 1px solid var(--background-modifier-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.snl-pageitem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--size-2-1);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.snl-pageitem canvas {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-s);
+  background: var(--background-primary);
+}
+
+.snl-pageitem:hover {
+  border-color: var(--background-modifier-border);
+}
+
+.snl-pageitem.is-active {
+  border-color: var(--interactive-accent);
+  color: var(--text-normal);
+}
+
+.snl-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--size-4-4);
+  background: var(--background-secondary);
+}
+
+.snl-paper {
+  position: relative;
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s);
+  border-radius: var(--radius-s);
+  flex: 0 0 auto;
+}
+
+.snl-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: var(--radius-s);
+}
+
+.snl-canvas-live {
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.snl-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-2);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.snl-empty-title {
+  font-size: var(--font-ui-medium);
+  color: var(--text-normal);
+}
+
+.snl-empty-sub {
+  font-size: var(--font-ui-smaller);
+}
+
+/* --- status bar ---------------------------------------------------------- */
+
+.snl-status {
+  padding: var(--size-2-2) var(--size-4-3);
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+  background: var(--background-primary);
+  border-top: 1px solid var(--background-modifier-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- export menu --------------------------------------------------------- */
+
+.snl-menu {
+  position: fixed;
+  z-index: var(--layer-menu, 100);
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: var(--size-2-2);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-s);
+}
+
+.snl-menuitem {
+  text-align: left;
+  padding: var(--size-2-2) var(--size-4-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-s);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: var(--font-ui-small);
+}
+
+.snl-menuitem:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* --- home view ----------------------------------------------------------- */
+
+.snl-home {
+  padding: var(--size-4-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+  background: var(--background-primary);
+}
+
+.snl-home-header h2 {
+  margin: 0;
+}
+
+.snl-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-2);
+  align-self: flex-start;
+  padding: var(--size-4-2) var(--size-4-4);
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-semibold);
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border: none;
+  border-radius: var(--radius-m);
+  cursor: pointer;
+}
+
+.snl-primary:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.snl-primary-icon {
+  display: inline-flex;
+}
+
+.snl-blockbutton {
+  align-self: auto;
+}
+
+.snl-home-subtitle {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.snl-home-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-1);
+  max-width: 640px;
+}
+
+.snl-home-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+  padding: var(--size-4-2) var(--size-4-3);
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  color: var(--text-normal);
+}
+
+.snl-home-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.snl-home-row-meta {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+/* --- modal --------------------------------------------------------------- */
+
+.snl-modal-input {
+  width: 100%;
+  margin: var(--size-4-2) 0;
+}
+
+.snl-modal-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--size-4-2);
+}
+
+.snl-hidden {
+  display: none !important;
+}

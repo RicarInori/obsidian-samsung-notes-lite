@@ -1,0 +1,31 @@
+{
+  "name": "samsung-notes-lite",
+  "version": "0.1.0",
+  "description": "Handwriting notes for Obsidian, modelled on Samsung Notes: S Pen ink, PDF import/export, vault-native storage, theme-unified UI.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:export && npm run test:load",
+    "test:export": "esbuild test/check.ts --bundle --platform=node --target=node22 --format=cjs --outfile=test/check.cjs --alias:obsidian=./test/obsidian-stub.ts --log-level=warning && node test/check.cjs",
+    "test:load": "esbuild test/smoke.ts --bundle --platform=node --target=node22 --format=cjs --outfile=test/smoke.cjs --alias:obsidian=./test/obsidian-stub.ts --log-level=warning && node -r ./test/node-polyfill.cjs test/smoke.cjs"
+  },
+  "keywords": [
+    "obsidian",
+    "handwriting",
+    "ink",
+    "pdf"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.7.284"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.14.4",
+    "typescript": "^5.7.0"
+  }
+}
