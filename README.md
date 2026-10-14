@@ -75,6 +75,26 @@ adb push community-plugins.json "$VAULT/.obsidian/community-plugins.json"
 
 S Pen / 手写笔在 Android 上会提供真实 `PointerEvent.pressure`，压感变宽在手写笔上是有效的。
 
+## S Pen 侧键橡皮（Android）
+
+在 Android WebView 里笔杆侧键**不在** Pointer Events 规范定义的橡皮键位上（`button === 5` / `buttons & 32` 实测**完全没有**）。
+Android/Chromium 把它映射成**主键位**，且只在**笔悬停（`pressure === 0`）**时可见：
+
+| 状态 | 实测事件形态 |
+|---|---|
+| 悬停，未按侧键 | `pointermove` → `buttons = 0` |
+| 悬停，按住侧键 | `pointermove` → `buttons = 1` |
+| 按下瞬间 | 额外触发一次 `contextmenu` |
+
+（Galaxy Tab S9+ / Android 16 实测；方法：window 级事件记录器 + 状态变化时间线，而非猜测。）
+
+**实现**：悬停阶段跟踪 `buttons & 1` → 落笔时若已按住 → 本次手势走橡皮；抬起恢复原工具。
+那次 `contextmenu` 被 `preventDefault` 掉，避免弹出系统菜单。
+
+**已知限制**：笔尖接触时 `buttons` 本来就是 1，与"接触 + 按侧键"无法区分，因此
+**"先落笔、再按侧键"不会切换为橡皮**——正常路径是"先悬停按住侧键、再落笔"。
+三星笔记自身是纯原生读 `MotionEvent.getButtonState()`，不受此限制（其 dex 内有 `getButtonState`×9、`getMetaState`×6、`onGenericMotionEvent`×6）。
+
 ## 存储格式
 
 每篇笔记 = 一个 `.md` + 一个同名 sidecar 文件夹，笔记本体留在仓库里，Obsidian 的搜索/双链/图谱/Git 都能用：

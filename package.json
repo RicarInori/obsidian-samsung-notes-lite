@@ -1,6 +1,6 @@
 {
   "name": "samsung-notes-lite",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Handwriting notes for Obsidian, modelled on Samsung Notes: S Pen ink, PDF import/export, vault-native storage, theme-unified UI.",
   "main": "main.js",
   "scripts": {

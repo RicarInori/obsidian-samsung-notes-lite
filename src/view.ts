@@ -54,6 +54,9 @@ export class SNoteView extends ItemView {
   private selected: Stroke | null = null;
   private dragging = false;
   private lastPointer: { x: number; y: number } | null = null;
+  private spenSideButton = false;
+  private spenSideButtonAt = 0;
+  private erasing = false;
   private frameQueued = false;
   private undoStack: Snapshot[] = [];
   private redoStack: Snapshot[] = [];
@@ -536,11 +539,41 @@ export class SNoteView extends ItemView {
 
   private bindPointer(): void {
     const canvas = this.liveCanvas;
+
+    // S Pen barrel button. Android/Chromium does not use the Pointer Events spec's eraser
+    // bits (button 5 / buttons 32); it reports the barrel button as the PRIMARY bit, which is
+    // visible while the pen hovers (pressure 0). Measured on a Galaxy Tab S9+:
+    //   pen/hover buttons 0  -> button released
+    //   pen/hover buttons 1  -> button held
+    // Tracked globally because the hover can land on any element.
+    this.registerDomEvent(
+      window,
+      'pointermove',
+      (evt: PointerEvent) => {
+        if (evt.pointerType !== 'pen' || evt.pressure !== 0) return;
+        this.spenSideButton = (evt.buttons & 1) === 1;
+        if (this.spenSideButton) this.spenSideButtonAt = performance.now();
+      },
+      true,
+    );
+    // the same press also opens a context menu; suppress it over the canvas
+    this.registerDomEvent(canvas, 'contextmenu', (evt: MouseEvent) => evt.preventDefault());
+
     canvas.addEventListener('pointerdown', (evt) => {
       if (!this.note) return;
       const page = this.currentPage();
       if (!page) return;
       const pt = this.toPageCoords(evt);
+
+      // Barrel button held (state tracked while hovering) → this gesture erases, and the
+      // previous tool returns on release.
+      if (evt.pointerType === 'pen' && this.spenSideButton && performance.now() - this.spenSideButtonAt < 2000) {
+        canvas.setPointerCapture(evt.pointerId);
+        this.pushUndo();
+        this.erasing = true;
+        this.eraseAt(pt, page);
+        return;
+      }
 
       if (this.tool === 'pen' || this.tool === 'highlighter') {
         canvas.setPointerCapture(evt.pointerId);
@@ -605,6 +638,11 @@ export class SNoteView extends ItemView {
       const page = this.currentPage();
       if (!page) return;
 
+      if (this.erasing) {
+        this.eraseAt(this.toPageCoords(evt), page);
+        return;
+      }
+
       if (this.active) {
         const events = this.coalesced(evt);
         for (const e of events) this.active.points.push(this.pointFrom(e, this.toPageCoords(e)));
@@ -632,6 +670,11 @@ export class SNoteView extends ItemView {
         this.redrawBase();
         this.renderLive();
       }
+      if (this.erasing) {
+        this.erasing = false;
+        this.scheduleSave();
+        this.renderPagesPanel();
+      }
       if (this.dragging) {
         this.dragging = false;
         this.scheduleSave();
@@ -640,6 +683,14 @@ export class SNoteView extends ItemView {
     };
     canvas.addEventListener('pointerup', finish);
     canvas.addEventListener('pointercancel', finish);
+  }
+
+  /** Remove the topmost stroke under a point (S Pen barrel-button eraser). */
+  private eraseAt(pt: { x: number; y: number }, page: Page): void {
+    const hit = hitTest(page.strokes, pt.x, pt.y, 6 / this.zoom);
+    if (!hit) return;
+    page.strokes = page.strokes.filter((s) => s !== hit);
+    this.redrawBase();
   }
 
   private coalesced(evt: PointerEvent): PointerEvent[] {
