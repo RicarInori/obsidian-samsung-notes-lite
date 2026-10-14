@@ -63,6 +63,11 @@ export class SNoteView extends ItemView {
   constructor(leaf: WorkspaceLeaf, plugin: SNotePlugin) {
     super(leaf);
     this.plugin = plugin;
+    // Obsidian's view base class runs `this.titleEl.setText(this.getDisplayText())` during
+    // load(), before onOpen(). A registered ItemView is not always given a titleEl, and when
+    // it is missing the whole view silently fails to open (onOpen never runs). Provide one.
+    const base = this as unknown as { titleEl?: HTMLElement };
+    if (!base.titleEl) base.titleEl = document.createElement('div');
   }
 
   getViewType(): string {
@@ -88,12 +93,36 @@ export class SNoteView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    this.buildLayout();
-    const path = this.pendingPath ?? (this.getState().path as string | null);
-    if (path) {
-      await this.openPath(path);
-    } else {
-      this.renderEmptyState();
+    // A blank view on mobile told us nothing, so failures are rendered in place.
+    try {
+      this.buildLayout();
+      // setState is not guaranteed to have run before onOpen, so fall back to the
+      // leaf's own requested state (and to our own persisted state last).
+      const leafState = (this.leaf as unknown as { getViewState?: () => { state?: { path?: string } } })
+        .getViewState?.()?.state;
+      const path =
+        this.pendingPath ??
+        leafState?.path ??
+        ((this.getState().path as string | null) ?? null);
+      if (path) {
+        await this.openPath(path);
+      } else {
+        this.renderEmptyState();
+      }
+    } catch (e) {
+      const message = (e as Error)?.message ?? String(e);
+      const box = document.createElement('div');
+      box.className = 'snl-empty';
+      const title = document.createElement('div');
+      title.className = 'snl-empty-title';
+      title.textContent = '三星笔记视图启动失败';
+      const detail = document.createElement('div');
+      detail.className = 'snl-empty-sub';
+      detail.textContent = message;
+      box.appendChild(title);
+      box.appendChild(detail);
+      this.contentEl.appendChild(box);
+      new Notice(`三星笔记视图失败：${message}`);
     }
   }
 
@@ -258,6 +287,8 @@ export class SNoteView extends ItemView {
   }
 
   private renderAll(): void {
+    // a previous empty-state (or error) placeholder must not sit on top of the pages
+    this.paperEl?.querySelector('.snl-empty')?.remove();
     this.renderOptions();
     this.renderPagesPanel();
     this.layoutCanvases();

@@ -109,11 +109,14 @@ export default class SNotePlugin extends Plugin {
 
   async openNote(mdPath: string): Promise<void> {
     const leaf = this.app.workspace.getLeaf(true);
-    await leaf.setViewState({
-      type: SNL_VIEW_TYPE,
-      active: true,
-      state: { path: mdPath },
-    });
+    await leaf.setViewState({ type: SNL_VIEW_TYPE, active: true });
+    // Driving the view directly: relying on Obsidian to hand our `state` back to
+    // setState proved unreliable (the view opened with no path and showed the empty
+    // state), so the plugin opens the note itself once the view exists.
+    const view = leaf.view;
+    if (view instanceof SNoteView) {
+      await view.openPath(mdPath);
+    }
     this.app.workspace.revealLeaf(leaf);
   }
 
