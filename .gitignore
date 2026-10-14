@@ -15,3 +15,8 @@ test/smoke.cjs
 # OS noise
 .DS_Store
 Thumbs.db
+# adb / device debugging scratch
+t*.xml
+ui*.xml
+*.png
+coords.txt
