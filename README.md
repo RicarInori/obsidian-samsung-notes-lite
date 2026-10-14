@@ -32,6 +32,25 @@ cp main.js manifest.json styles.css "<vault>/.obsidian/plugins/samsung-notes-lit
 # 然后在 Obsidian → 设置 → 第三方插件 里启用（本仓库已写入 community-plugins.json 自动启用）
 ```
 
+## 移动端（Android / iOS）
+
+`manifest.json` 里 `isDesktopOnly` 为 `false`，插件只使用仓库适配器与标准 DOM/Canvas API，
+**没有任何 Node/Electron 依赖**（可用 `grep -oE 'require\("(electron|fs|node:[a-z]+)"\)' main.js` 复核，
+结果为 0 条），因此手机版 Obsidian 也能加载。
+
+手机上安装的三条路：
+
+1. **BRAT**（推荐）：在手机 Obsidian 装 BRAT 插件，Add beta plugin → 填 `RicarInori/obsidian-samsung-notes-lite`。
+2. **手动**：把 `main.js` / `manifest.json` / `styles.css` 放进手机那个仓库的
+   `<vault>/.obsidian/plugins/samsung-notes-lite/`（Android 用文件管理器；iOS 用「文件」App 或 iCloud）。
+3. **同步**：桌面端装好后用 Obsidian Sync / 网盘同步整个仓库，`.obsidian/plugins/` 会一起过去
+   （注意：官方 Sync 默认不同步插件目录，需在同步设置里勾选）。
+
+然后同样要 **设置 → 第三方插件 → 关闭受限模式 → 启用**。
+
+手机上的两个额外提示：S Pen / 手写笔在 Android 上会提供真实 `PointerEvent.pressure`，压感变宽是有效的；
+而 Android WebView 对 `window.prompt` 支持不可靠，所以文本工具改用了 Obsidian 原生模态框。
+
 ## 存储格式
 
 每篇笔记 = 一个 `.md` + 一个同名 sidecar 文件夹，笔记本体留在仓库里，Obsidian 的搜索/双链/图谱/Git 都能用：
@@ -103,4 +122,5 @@ Obsidian 没有固定"首页"，所以四处都提供，任选：
 **未验证**
 
 - 画布绘制、指针取样、工具栏交互、PDF 导入的**实际渲染**：需要 GUI 里手点，我无法代做。
+- **移动端运行时**：代码层面已排除 Node/Electron 依赖并去掉了 `window.prompt`，但没有在真机上跑过。
 - 笔感：需要压感硬件（数位笔/笔屏）；鼠标只能得到恒定 pressure。

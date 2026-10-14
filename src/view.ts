@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, Notice, setIcon, ViewStateResult } from 'obsidian';
+import { ItemView, WorkspaceLeaf, Notice, setIcon, ViewStateResult, Modal, App } from 'obsidian';
 import type SNotePlugin from './main';
 import {
   NoteDoc,
@@ -545,14 +545,17 @@ export class SNoteView extends ItemView {
       }
 
       if (this.tool === 'text') {
-        const text = window.prompt('输入文本');
-        if (text && text.trim()) {
+        // A modal, not window.prompt: Android WebView (Obsidian mobile) does not
+        // reliably implement the blocking dialog APIs.
+        new TextInputModal(this.app, (text) => {
+          const target = this.currentPage();
+          if (!target || !text.trim()) return;
           this.pushUndo();
-          page.texts.push({
+          target.texts.push({
             id: newId('t'),
             x: pt.x,
             y: pt.y,
-            w: Math.min(600, page.width - pt.x),
+            w: Math.min(600, Math.max(160, target.width - pt.x)),
             text: text.trim(),
             size: 28,
             color: this.color,
@@ -560,7 +563,7 @@ export class SNoteView extends ItemView {
           this.scheduleSave();
           this.redrawBase();
           this.renderPagesPanel();
-        }
+        }).open();
       }
     });
 
@@ -836,5 +839,48 @@ export class SNoteView extends ItemView {
 
   private setStatus(text: string): void {
     if (this.statusEl) this.statusEl.textContent = text;
+  }
+}
+
+/** Text-entry dialog used by the text tool (works identically on desktop and mobile). */
+class TextInputModal extends Modal {
+  private onSubmit: (text: string) => void;
+
+  constructor(app: App, onSubmit: (text: string) => void) {
+    super(app);
+    this.onSubmit = onSubmit;
+  }
+
+  onOpen(): void {
+    const { contentEl } = this;
+    contentEl.createEl('h3', { text: '输入文本' });
+
+    const area = contentEl.createEl('textarea', { cls: 'snl-modal-textarea' });
+    area.rows = 4;
+    area.focus();
+
+    const submit = () => {
+      const value = area.value;
+      this.close();
+      this.onSubmit(value);
+    };
+
+    area.addEventListener('keydown', (evt) => {
+      // Enter inserts a newline; Ctrl/Cmd+Enter commits.
+      if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+        evt.preventDefault();
+        submit();
+      }
+    });
+
+    const row = contentEl.createEl('div', { cls: 'snl-modal-row' });
+    const cancel = row.createEl('button', { text: '取消' });
+    cancel.addEventListener('click', () => this.close());
+    const ok = row.createEl('button', { text: '插入', cls: 'mod-cta' });
+    ok.addEventListener('click', submit);
+  }
+
+  onClose(): void {
+    this.contentEl.empty();
   }
 }

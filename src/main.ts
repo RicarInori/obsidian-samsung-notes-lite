@@ -220,8 +220,13 @@ class SNLSettingTab extends PluginSettingTab {
       .setDesc('在任意笔记里插入下面这段代码块，就会渲染出「创建三星笔记」按钮。')
       .addButton((button) =>
         button.setButtonText('复制代码块').onClick(async () => {
-          await navigator.clipboard.writeText('```snote-button\n创建三星笔记\n```');
-          new Notice('已复制');
+          try {
+            await navigator.clipboard.writeText('```snote-button\n创建三星笔记\n```');
+            new Notice('已复制');
+          } catch {
+            // clipboard access can be denied in a mobile webview
+            new Notice('复制失败，请手动输入：```snote-button 创建三星笔记```');
+          }
         }),
       );
   }

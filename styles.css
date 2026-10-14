@@ -374,6 +374,13 @@
   margin: var(--size-4-2) 0;
 }
 
+.snl-modal-textarea {
+  width: 100%;
+  margin: var(--size-4-2) 0;
+  resize: vertical;
+  font-family: var(--font-text);
+}
+
 .snl-modal-row {
   display: flex;
   justify-content: flex-end;
